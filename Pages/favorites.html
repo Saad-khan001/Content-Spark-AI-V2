@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Favorites | ContentSpark AI</title>
+  <script>
+    if (!localStorage.getItem('authenticated')) {
+      window.location.href = './auth.html';
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="../CSS/style.css" />
+  <link rel="stylesheet" href="../CSS/saas-ui.css" />
+  <style>
+.fav-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255,255,255,0.02);
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.05);
+  margin-bottom: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="light"] .fav-item {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.fav-item:hover {
+  transform: translateX(8px);
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(204,255,0,0.2);
+}
+
+[data-theme="light"] .fav-item:hover {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+    .fav-content strong {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .fav-meta {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 0.8rem;
+    }
+
+    .fav-tag {
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      background: rgba(204,255,0,0.15);
+      color: var(--primary);
+    }
+
+    .fav-date {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .fav-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .fav-actions .icon-btn {
+      width: 42px;
+      height: 42px;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .fav-actions .icon-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: rgba(255,255,255,0.02);
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .empty-state i {
+      width: 60px;
+      height: 60px;
+      color: var(--primary);
+      margin-bottom: 1.5rem;
+      opacity: 0.5;
+    }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fav-item {
+  animation: fadeInUp 0.4s ease;
+}
+
+@media (max-width: 768px) {
+  .fav-item {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem;
+  }
+
+  .fav-actions {
+    align-self: flex-end;
+  }
+
+  .fav-meta {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .fav-item {
+    padding: 0.8rem;
+  }
+
+  .fav-content strong {
+    font-size: 1rem;
+  }
+
+  .fav-actions .icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="logo-icon"><i data-lucide="sparkles"></i></div>
+        <div class="logo-text">
+          <h2>ContentSpark</h2>
+          <span>AI Workspace</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+        <a href="./generator.html" class="nav-link"><i data-lucide="wand-sparkles"></i><span>Generator</span></a>
+        <a href="./templates.html" class="nav-link"><i data-lucide="files"></i><span>Templates</span></a>
+        <a href="#" class="nav-link active"><i data-lucide="heart"></i><span>Favorites</span></a>
+        <a href="./history.html" class="nav-link"><i data-lucide="history"></i><span>History</span></a>
+        <a href="./analytics.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Analytics</span></a>
+        <a href="./pricing.html" class="nav-link"><i data-lucide="credit-card"></i><span>Pricing</span></a>
+        <a href="./settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a>
+        <a href="#" class="nav-link" id="logout-btn"><i data-lucide="log-out"></i><span>Logout</span></a>
+      </nav>
+
+      <div class="premium-card upgrade-card">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;">
+          <i data-lucide="crown" style="color:var(--primary);"></i>
+          <h3 style="margin:0;">Pro Workspace</h3>
+        </div>
+        <ul style="list-style:none;padding:0;margin:0 0 1rem 0;color:var(--text-muted);font-size:.85rem;line-height:2;">
+          <li style="display:flex;align-items:center;gap:.3rem;"><i data-lucide="check" style="width:14px;height:14px;color:var(--primary);"></i> Unlimited AI generations</li>
+          <li style="display:flex;align-items:center;gap:.3rem;"><i data-lucide="check" style="width:14px;height:14px;color:var(--primary);"></i> Advanced analytics</li>
+          <li style="display:flex;align-items:center;gap:.3rem;"><i data-lucide="check" style="width:14px;height:14px;color:var(--primary);"></i> Premium templates</li>
+          <li style="display:flex;align-items:center;gap:.3rem;"><i data-lucide="check" style="width:14px;height:14px;color:var(--primary);"></i> Priority support</li>
+        </ul>
+        <button id="upgrade-btn" type="button" class="hero-btn">Upgrade Now</button>
+      </div>
+
+      <div id="pro-modal-backdrop" class="modal-backdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pro-modal-title">
+          <div class="modal-header">
+            <h3 id="pro-modal-title">Go Pro</h3>
+            <button id="pro-modal-close" class="modal-close" type="button" aria-label="Close">&times;</button>
+          </div>
+          <p>Select a plan to unlock the Pro Workspace (demo).</p>
+          <div class="modal-actions">
+            <button class="pro-select" data-plan="monthly" type="button">Monthly Pro</button>
+            <button class="pro-select" data-plan="yearly" type="button">Yearly Pro</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <button class="upgrade-card-mobile" id="mobile-upgrade-btn">
+      <i data-lucide="crown"></i> Pro
+    </button>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="search-box">
+          <i data-lucide="search"></i>
+          <input type="text" placeholder="Search favorites..." id="fav-search" />
+        </div>
+
+<div class="topbar-actions">
+           <button class="icon-btn" id="notification-btn" type="button" aria-label="Notifications">
+             <i data-lucide="bell"></i>
+             <span class="notification-badge" id="notification-count" style="display:none;">0</span>
+           </button>
+
+           <div class="notification-popup" id="notification-popup">
+             <div class="notification-item">No notifications yet</div>
+           </div>
+
+           <button class="icon-btn" id="theme-toggle-btn" type="button" aria-label="Toggle theme">
+             <i data-lucide="moon"></i>
+           </button>
+           <div class="profile profile-clickable" id="profile-trigger">
+             <div class="avatar">S</div>
+             <div class="profile-info">
+               <strong>Saad</strong>
+               <span>Creator</span>
+             </div>
+           </div>
+
+           <div class="profile-popup" id="profile-popup">
+             <div class="profile-popup-header">
+               <div class="profile-popup-avatar">S</div>
+               <div>
+                 <div style="font-weight:600;">Saad</div>
+                 <div style="color:var(--text-muted);font-size:.85rem;">Creator Plan</div>
+               </div>
+             </div>
+             <div>
+               <div class="profile-stat">
+                 <span class="profile-stat-label">Favorites</span>
+                 <span class="profile-stat-value" id="profile-stat-favs">0</span>
+               </div>
+             </div>
+             <button id="view-profile-btn" class="hero-btn" style="width:100%;padding:.8rem;">
+               View Full Profile
+             </button>
+           </div>
+         </div>
+       </header>
+
+      <section class="hero" style="margin-bottom:2rem;">
+        <div class="hero-content">
+          <span class="hero-badge"><i data-lucide="heart"></i>&nbsp;Favorites</span>
+          <h1>Saved Items</h1>
+          <p>Ideas and templates you marked as favorites.</p>
+        </div>
+      </section>
+
+      <section class="glass-card">
+        <div class="card-header">
+          <h2>Favorites Collection</h2>
+          <span style="color:var(--text-muted);font-size:.85rem;" id="fav-count">0 items</span>
+        </div>
+        <div id="favorites-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="../JS/data.js"></script>
+  <script src="../JS/ui.js"></script>
+  <script src="../JS/dashboard.js"></script>
+  <script src="../JS/app.js"></script>
+  <script>
+    const csData = window.__csData;
+    const dashboard = window.__dashboard;
+
+    // Load user and stats
+    const auth = JSON.parse(localStorage.getItem('authenticated') || '{}');
+    document.querySelector('.profile-info strong').textContent = auth.name || 'User';
+    document.querySelector('.profile-popup-header div div').textContent = auth.name || 'User';
+    document.querySelector('.profile-popup-avatar').textContent = (auth.name || 'U')[0];
+    document.querySelector('.avatar').textContent = (auth.name || 'U')[0];
+
+    function updateStats() {
+      const favs = csData?.getFavorites() || [];
+      document.getElementById('profile-stat-favs').textContent = favs.length;
+      document.getElementById('fav-count').textContent = `${favs.length} item${favs.length === 1 ? '' : 's'}`;
+
+      const isPro = dashboard?.isPro() || false;
+      const credits = dashboard?.getUserCredits() ?? 50;
+      const creditsText = isPro ? 'Unlimited' : credits;
+      
+      const creditsEl = document.getElementById('user-credits');
+      if (creditsEl) creditsEl.textContent = creditsText;
+    }
+
+    // Render favorites list
+    function renderFavorites(filterText = '') {
+      const container = document.getElementById('favorites-list');
+      if (!container) return;
+
+      const favIds = csData?.getFavorites() || [];
+      const ideas = csData?.getIdeas() || [];
+      const templates = csData?.getTemplates() || [];
+
+      // Combine templates and ideas that are favorited
+      const favItems = [];
+
+      favIds.forEach(id => {
+        if (id.startsWith('tpl-')) {
+          const t = templates.find(item => item.id === id);
+          if (t) {
+            favItems.push({
+              id: t.id,
+              title: t.title,
+              content: t.content,
+              category: t.category,
+              type: 'Template'
+            });
+          }
+        } else {
+          const idea = ideas.find(item => item.id === id);
+          if (idea) {
+            favItems.push({
+              id: idea.id,
+              title: idea.title,
+              content: idea.preview,
+              category: idea.category,
+              type: 'Generated Idea'
+            });
+          }
+        }
+      });
+
+      // Filter favorites
+      let filtered = favItems;
+      if (filterText.trim()) {
+        const query = filterText.toLowerCase();
+        filtered = favItems.filter(item => 
+          item.title.toLowerCase().includes(query) ||
+          item.content.toLowerCase().includes(query) ||
+          item.category.toLowerCase().includes(query) ||
+          item.type.toLowerCase().includes(query)
+        );
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i data-lucide="heart" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 1rem; opacity: 0.5;"></i>
+            <h3>No favorites found</h3>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">${favIds.length === 0 ? 'Mark templates or generated ideas as favorites to see them here.' : 'Try a different search query.'}</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => `
+        <div class="fav-item" id="fav-card-${item.id}">
+          <div class="fav-content">
+            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+              <span class="fav-tag">${escapeHtml(item.category)}</span>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:500; background:rgba(255,255,255,0.05); padding:0.2rem 0.5rem; border-radius:6px;">${escapeHtml(item.type)}</span>
+            </div>
+            <strong>${escapeHtml(item.title)}</strong>
+            <p style="color:var(--text-muted); font-size:0.9rem; line-height:1.5;">${escapeHtml(item.content)}</p>
+          </div>
+          <div class="fav-actions">
+            <button class="icon-btn" onclick="copyToClipboard('${escapeJs(item.title)}\\n\\n${escapeJs(item.content)}')" aria-label="Copy favorited item">
+              <i data-lucide="copy" style="width:18px; height:18px;"></i>
+            </button>
+            <button class="icon-btn" onclick="unfavoriteItem('${item.id}')" aria-label="Remove favorited item">
+              <i data-lucide="heart-off" style="width:18px; height:18px;"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    window.copyToClipboard = function(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied', 'Content copied to clipboard!');
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+      });
+    };
+
+    window.unfavoriteItem = function(id) {
+      csData?.toggleFavorite(id);
+      showToast('Removed', 'Removed from favorites');
+      
+      // Animate slide-out deletion before re-rendering
+      const card = document.getElementById(`fav-card-${id}`);
+      if (card) {
+        card.style.transform = 'translateX(-20px)';
+        card.style.opacity = '0';
+        card.style.transition = 'all 0.3s ease';
+        setTimeout(() => {
+          renderFavorites(document.getElementById('fav-search')?.value || '');
+          updateStats();
+        }, 300);
+      } else {
+        renderFavorites(document.getElementById('fav-search')?.value || '');
+        updateStats();
+      }
+    };
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function escapeJs(s) {
+      return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
+    }
+
+    // Search bar trigger
+    document.getElementById('fav-search')?.addEventListener('input', (e) => {
+      renderFavorites(e.target.value);
+    });
+
+    // Profile Trigger popup
+    document.getElementById('profile-trigger')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('profile-popup').classList.toggle('show');
+    });
+
+    document.getElementById('view-profile-btn')?.addEventListener('click', () => {
+      window.location.href = './settings.html';
+    });
+
+    document.addEventListener('click', (e) => {
+      const popup = document.getElementById('profile-popup');
+      const trigger = document.getElementById('profile-trigger');
+      if (popup && popup.classList.contains('show') && !trigger?.contains(e.target) && !popup.contains(e.target)) {
+        popup.classList.remove('show');
+      }
+    });
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      renderFavorites();
+      updateStats();
+    });
+  </script>
+</body>
+</html>

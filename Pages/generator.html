@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generator | ContentSpark AI</title>
+  <script>
+    if (!localStorage.getItem('authenticated')) {
+      window.location.href = './auth.html';
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="../CSS/style.css" />
+  <link rel="stylesheet" href="../CSS/saas-ui.css" />
+  <style>
+    .generator-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-width: 500px;
+      margin-top: 1.5rem;
+    }
+
+    .generator-form label {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .generator-input {
+      padding: 1rem 1.2rem;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+
+    .generator-input:focus {
+      border-color: var(--primary);
+      background: rgba(255,255,255,0.05);
+      box-shadow: 0 0 0 4px rgba(204,255,0,0.15);
+    }
+
+    .generator-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .generate-btn {
+      padding: 1rem 2rem;
+      border-radius: 16px;
+      border: none;
+      background: linear-gradient(135deg, var(--primary), #9ff000);
+      color: #000;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .generate-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(204,255,0,0.25);
+    }
+
+    .generate-btn i {
+      width: 20px;
+      height: 20px;
+    }
+
+    .idea-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.5rem;
+      background: rgba(255,255,255,0.02);
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.05);
+      margin-bottom: 1rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+
+    .idea-card:hover {
+      transform: translateX(8px);
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(204,255,0,0.2);
+    }
+
+    .idea-fav-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+
+    .idea-fav-btn:hover {
+      background: rgba(204,255,0,0.15);
+      border-color: var(--primary);
+    }
+
+    .idea-fav-btn.favorited {
+      background: rgba(204,255,0,0.2);
+      border-color: var(--primary);
+    }
+
+    .idea-fav-btn i {
+      width: 20px;
+      height: 20px;
+    }
+
+    .idea-content {
+      flex: 1;
+    }
+
+    .idea-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    .idea-preview {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .template-chip {
+      padding: 0.8rem 1rem;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .template-chip:hover {
+      background: rgba(204,255,0,0.15);
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 2rem;
+      background: rgba(255,255,255,0.02);
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .generator-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .generator-icon-wrapper {
+      width: 60px;
+      height: 60px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--primary), #9ff000);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .generator-icon-wrapper i {
+      color: #000;
+      width: 32px;
+      height: 32px;
+    }
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(204,255,0,0.2); }
+  50% { box-shadow: 0 0 40px rgba(204,255,0,0.4); }
+}
+
+.generate-btn {
+  animation: pulse-glow 3s infinite;
+}
+
+@media (max-width: 768px) {
+  .generator-form {
+    max-width: 100%;
+  }
+
+  .idea-card {
+    padding: 1rem;
+    gap: 0.8rem;
+  }
+
+  .idea-fav-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .template-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .template-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .generator-input {
+    padding: 0.8rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .generate-btn {
+    padding: 0.8rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .idea-title {
+    font-size: 1rem;
+  }
+
+  .idea-preview {
+    font-size: 0.85rem;
+  }
+}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="logo-icon"><i data-lucide="sparkles"></i></div>
+        <div class="logo-text">
+          <h2>ContentSpark</h2>
+          <span>AI Workspace</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+        <a href="#" class="nav-link active"><i data-lucide="wand-sparkles"></i><span>Generator</span></a>
+        <a href="./templates.html" class="nav-link"><i data-lucide="files"></i><span>Templates</span></a>
+        <a href="./favorites.html" class="nav-link"><i data-lucide="heart"></i><span>Favorites</span></a>
+        <a href="./history.html" class="nav-link"><i data-lucide="history"></i><span>History</span></a>
+        <a href="./analytics.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Analytics</span></a>
+        <a href="./pricing.html" class="nav-link"><i data-lucide="credit-card"></i><span>Pricing</span></a>
+        <a href="./settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a>
+        <a href="#" class="nav-link" id="logout-btn"><i data-lucide="log-out"></i><span>Logout</span></a>
+      </nav>
+
+      <div class="premium-card upgrade-card">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;">
+          <i data-lucide="crown" style="color:var(--primary);"></i>
+          <h3 style="margin:0;">Pro Workspace</h3>
+        </div>
+        <ul style="list-style:none;padding:0;margin:0 0 1rem 0;color:var(--text-muted);font-size:.85rem;line-height:2;">
+          <li style="display:flex;align-items:center;gap:.3rem;"><i data-lucide="check" style="width:14px;height:14px;color:var(--primary);"></i> Unlimited AI generations</li>
+          <li style="display:flex;align-items:center;gap:.3rem;"><i data-lucide="check" style="width:14px;height:14px;color:var(--primary);"></i> Advanced analytics</li>
+          <li style="display:flex;align-items:center;gap:.3rem;"><i data-lucide="check" style="width:14px;height:14px;color:var(--primary);"></i> Premium templates</li>
+          <li style="display:flex;align-items:center;gap:.3rem;"><i data-lucide="check" style="width:14px;height:14px;color:var(--primary);"></i> Priority support</li>
+        </ul>
+        <button id="upgrade-btn" type="button" class="hero-btn">Upgrade Now</button>
+      </div>
+
+      <div id="pro-modal-backdrop" class="modal-backdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pro-modal-title">
+          <div class="modal-header">
+            <h3 id="pro-modal-title">Go Pro</h3>
+            <button id="pro-modal-close" class="modal-close" type="button" aria-label="Close">&times;</button>
+          </div>
+          <p>Select a plan to unlock the Pro Workspace (demo).</p>
+          <div class="modal-actions">
+            <button class="pro-select" data-plan="monthly" type="button">Monthly Pro</button>
+            <button class="pro-select" data-plan="yearly" type="button">Yearly Pro</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <button class="upgrade-card-mobile" id="mobile-upgrade-btn">
+      <i data-lucide="crown"></i> Pro
+    </button>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="search-box">
+          <i data-lucide="search"></i>
+          <input type="text" placeholder="Search anything..." />
+        </div>
+
+<div class="topbar-actions">
+           <button class="icon-btn" id="notification-btn" type="button" aria-label="Notifications">
+             <i data-lucide="bell"></i>
+             <span class="notification-badge" id="notification-count" style="display:none;">0</span>
+           </button>
+
+           <div class="notification-popup" id="notification-popup">
+             <div class="notification-item">No notifications yet</div>
+           </div>
+
+           <button class="icon-btn" id="theme-toggle-btn" type="button" aria-label="Toggle theme">
+             <i data-lucide="moon"></i>
+           </button>
+           <div class="profile profile-clickable" id="profile-trigger">
+             <div class="avatar">S</div>
+             <div class="profile-info">
+               <strong>Saad</strong>
+               <span>Creator</span>
+             </div>
+           </div>
+
+           <div class="profile-popup" id="profile-popup">
+             <div class="profile-popup-header">
+               <div class="profile-popup-avatar">S</div>
+               <div>
+                 <div style="font-weight:600;">Saad</div>
+                 <div style="color:var(--text-muted);font-size:.85rem;">Creator Plan</div>
+               </div>
+             </div>
+             <div>
+               <div class="profile-stat">
+                 <span class="profile-stat-label">Ideas Generated</span>
+                 <span class="profile-stat-value" id="profile-stat-ideas">0</span>
+               </div>
+               <div class="profile-stat">
+                 <span class="profile-stat-label">Favorites</span>
+                 <span class="profile-stat-value" id="profile-stat-favs">0</span>
+               </div>
+             </div>
+             <button id="view-profile-btn" class="hero-btn" style="width:100%;padding:.8rem;">
+               View Full Profile
+             </button>
+           </div>
+         </div>
+       </header>
+
+      <section class="hero" style="margin-bottom:2rem;">
+        <div class="hero-content">
+          <span class="hero-badge"><i data-lucide="wand-sparkles"></i>&nbsp;Idea Generator</span>
+          <h1>AI-Powered Content Creation</h1>
+          <p>Enter a topic, select a template, and generate high-quality content instantly.</p>
+
+          <form class="generator-form" id="generator-form" autocomplete="off">
+            <label for="gen-topic">Topic / Platform</label>
+            <input id="gen-topic" type="text" placeholder="e.g. SaaS landing page, Instagram reels, product marketing" class="generator-input" />
+            <button id="gen-btn" class="generate-btn" type="submit">
+              <i data-lucide="sparkles"></i>
+              Generate Ideas
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <div class="content-grid">
+        <div class="glass-card">
+          <div class="card-header">
+            <h2>Generated Ideas</h2>
+          </div>
+          <div id="gen-results"></div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-header">
+            <h2>Quick Templates</h2>
+          </div>
+          <div id="template-suggest" class="template-grid"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="../JS/data.js"></script>
+  <script src="../JS/ui.js"></script>
+  <script src="../JS/dashboard.js"></script>
+  <script src="../JS/app.js"></script>
+  <script>
+    // Seeding templates and reading favorites
+    const csData = window.__csData;
+    const dashboard = window.__dashboard;
+
+    // Load user and stats
+    const auth = JSON.parse(localStorage.getItem('authenticated') || '{}');
+    document.querySelector('.profile-info strong').textContent = auth.name || 'User';
+    document.querySelector('.profile-popup-header div div').textContent = auth.name || 'User';
+    document.querySelector('.profile-popup-avatar').textContent = (auth.name || 'U')[0];
+    document.querySelector('.avatar').textContent = (auth.name || 'U')[0];
+
+    function updateStats() {
+      const history = csData?.getHistory() || [];
+      const favs = csData?.getFavorites() || [];
+      
+      const ideasCount = history.reduce((sum, run) => sum + (run.ideas?.length || 0), 0);
+      document.getElementById('profile-stat-ideas').textContent = ideasCount;
+      document.getElementById('profile-stat-favs').textContent = favs.length;
+      
+      const isPro = dashboard?.isPro() || false;
+      const credits = dashboard?.getUserCredits() ?? 50;
+      const creditsText = isPro ? 'Unlimited' : credits;
+      
+      const creditsEl = document.getElementById('user-credits');
+      if (creditsEl) creditsEl.textContent = creditsText;
+    }
+
+    // Check URL parameters for pre-filling
+    function checkUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      const topic = params.get('topic');
+      const topicInput = document.getElementById('gen-topic');
+      if (topic && topicInput) {
+        topicInput.value = topic;
+        // Automatically submit the form to generate ideas
+        setTimeout(() => {
+          document.getElementById('generator-form').dispatchEvent(new Event('submit'));
+        }, 300);
+      }
+    }
+
+    // Render templates quick chips
+    function renderTemplateSuggest() {
+      const templates = csData?.getTemplates() || [];
+      const container = document.getElementById('template-suggest');
+      if (!container) return;
+
+      if (templates.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted); font-size: 0.85rem;">No templates available</p>';
+        return;
+      }
+
+      container.innerHTML = templates.slice(0, 4).map(t => `
+        <div class="template-chip" data-title="${escapeHtml(t.title)}">
+          ${escapeHtml(t.title)}
+        </div>
+      `).join('');
+
+      container.querySelectorAll('.template-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const topicInput = document.getElementById('gen-topic');
+          if (topicInput) {
+            topicInput.value = chip.getAttribute('data-title');
+            topicInput.focus();
+          }
+        });
+      });
+    }
+
+    // Render generated ideas
+    function renderResults(ideas) {
+      const resultsContainer = document.getElementById('gen-results');
+      if (!resultsContainer) return;
+
+      const favs = csData?.getFavorites() || [];
+
+      if (!ideas || ideas.length === 0) {
+        resultsContainer.innerHTML = `
+          <div class="empty-state">
+            <i data-lucide="wand-sparkles" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 1rem; opacity: 0.5;"></i>
+            <h3>No ideas generated yet</h3>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">Enter a topic above and click Generate Ideas</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      resultsContainer.innerHTML = ideas.map(idea => {
+        const isFav = favs.includes(idea.id);
+        return `
+          <div class="idea-card">
+            <div class="idea-content" onclick="copyToClipboard('${escapeJs(idea.title)}\\n\\n${escapeJs(idea.preview)}')">
+              <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem;">
+                <span class="fav-tag">${escapeHtml(idea.category)}</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.2rem;">
+                  <i data-lucide="copy" style="width:12px; height:12px;"></i> Click to copy
+                </span>
+              </div>
+              <div class="idea-title">${escapeHtml(idea.title)}</div>
+              <div class="idea-preview">${escapeHtml(idea.preview)}</div>
+            </div>
+            <button class="idea-fav-btn ${isFav ? 'favorited' : ''}" data-id="${idea.id}" aria-label="Favorite idea">
+              <i data-lucide="heart" style="${isFav ? 'fill:var(--primary); color:var(--primary);' : ''}"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+
+      // Attach favoriting listeners
+      resultsContainer.querySelectorAll('.idea-fav-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute('data-id');
+          const isFavoritedNow = csData?.toggleFavorite(id);
+          btn.classList.toggle('favorited', isFavoritedNow);
+          
+          const icon = btn.querySelector('i');
+          if (icon) {
+            if (isFavoritedNow) {
+              icon.style.fill = 'var(--primary)';
+              icon.style.color = 'var(--primary)';
+              showToast('Saved to Favorites', 'Idea added to your favorites list');
+            } else {
+              icon.style.fill = 'none';
+              icon.style.color = '';
+              showToast('Removed from Favorites', 'Idea removed from your favorites list');
+            }
+          }
+          updateStats();
+        });
+      });
+    }
+
+    // Generator function
+    function generateMockIdeas(topic) {
+      const cleaned = topic.trim() || 'My Topic';
+      return [
+        {
+          id: 'idea-' + Date.now() + '-1',
+          title: `Top 5 Growth Strategies for ${cleaned} in 2026`,
+          preview: `Discover the emerging trends shaping ${cleaned} this year. We break down the top tools, frameworks, and marketing patterns to grow your brand.`,
+          category: 'Marketing'
+        },
+        {
+          id: 'idea-' + Date.now() + '-2',
+          title: `The Ultimate Guide to Mastering ${cleaned}`,
+          preview: `Avoid hours of trial and error. Here is the step-by-step workbook to achieving maximum productivity and speed with ${cleaned} in under 10 minutes.`,
+          category: 'Guide'
+        },
+        {
+          id: 'idea-' + Date.now() + '-3',
+          title: `Why Traditional ${cleaned} is Dead (And What's Next)`,
+          preview: `The landscape is shifting. We analyze the decline of classic legacy workflows in ${cleaned} and why modern, AI-integrated tools are taking over.`,
+          category: 'Opinion'
+        }
+      ];
+    }
+
+    // Copy to clipboard helper
+    window.copyToClipboard = function(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied', 'Content copied to clipboard!');
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+      });
+    };
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function escapeJs(s) {
+      return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
+    }
+
+    // Form submit listener
+    document.getElementById('generator-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const topicInput = document.getElementById('gen-topic');
+      const topic = topicInput ? topicInput.value.trim() : '';
+
+      if (!topic) {
+        showToast('Topic Required', 'Please enter a topic or select a quick template first.');
+        return;
+      }
+
+      // Check credits
+      const isPro = dashboard?.isPro() || false;
+      const credits = dashboard?.getUserCredits() ?? 50;
+
+      if (!isPro && credits <= 0) {
+        showToast('Upgrade Required', 'Out of free credits. Upgrade to Pro for unlimited generation!');
+        const modal = document.getElementById('pro-modal-backdrop');
+        modal?.classList.add('show');
+        return;
+      }
+
+      // Animate button loading
+      const btn = document.getElementById('gen-btn');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="animate-spin" style="width:20px;height:20px;"></i> Generating...`;
+      lucide.createIcons();
+
+      // Show loader in results
+      const resultsContainer = document.getElementById('gen-results');
+      resultsContainer.innerHTML = `
+        <div style="text-align: center; padding: 4rem 2rem;">
+          <div class="loader-logo" style="width: 60px; height: 60px; margin: 0 auto 1.5rem; animation: spin 1s linear infinite;"><i data-lucide="sparkles" style="width:30px; height:30px; color:#000;"></i></div>
+          <p style="color:var(--text-muted);">ContentSpark AI is writing ideas for "${escapeHtml(topic)}"...</p>
+        </div>
+      `;
+      lucide.createIcons();
+
+      setTimeout(() => {
+        // Generate ideas
+        const ideas = generateMockIdeas(topic);
+
+        // Save ideas individually so they are in the database
+        ideas.forEach(idea => {
+          csData?.addIdea(idea);
+        });
+
+        // Save history run
+        csData?.addHistory({
+          id: 'run-' + Date.now(),
+          topic: topic,
+          ideas: ideas,
+          createdAt: new Date().toISOString()
+        });
+
+        // Deduct credit
+        if (!isPro) {
+          dashboard?.setUserCredits(credits - 1);
+        }
+
+        // Render ideas
+        renderResults(ideas);
+        updateStats();
+
+        // Restore button state
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        lucide.createIcons();
+
+        showToast('Success', 'Ideas generated successfully!');
+      }, 1500);
+    });
+
+    // Profile Trigger popup
+    document.getElementById('profile-trigger')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('profile-popup').classList.toggle('show');
+    });
+
+    document.getElementById('view-profile-btn')?.addEventListener('click', () => {
+      window.location.href = './settings.html';
+    });
+
+    document.addEventListener('click', (e) => {
+      const popup = document.getElementById('profile-popup');
+      const trigger = document.getElementById('profile-trigger');
+      if (popup && popup.classList.contains('show') && !trigger?.contains(e.target) && !popup.contains(e.target)) {
+        popup.classList.remove('show');
+      }
+    });
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      renderTemplateSuggest();
+      renderResults(null); // Show empty state first
+      updateStats();
+      checkUrlParams();
+    });
+  </script>
+</body>
+</html>

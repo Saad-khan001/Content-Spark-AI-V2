@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel | ContentSpark AI</title>
+  <script>
+    // Admin authentication check
+    const authenticated = localStorage.getItem('authenticated');
+    if (!authenticated) {
+      window.location.replace('./auth.html');
+    }
+    // Check if admin (demo: check email)
+    const auth = JSON.parse(authenticated || '{}');
+    if (auth.email !== 'admin@contentspark.ai') {
+      window.location.replace('../index.html');
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="../CSS/style.css" />
+  <link rel="stylesheet" href="../CSS/saas-ui.css" />
+  <style>
+    .admin-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .admin-table th, .admin-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .admin-table th {
+      background: rgba(255,255,255,.03);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .status-badge {
+      padding: .3rem .7rem;
+      border-radius: 999px;
+      font-size: .8rem;
+      font-weight: 600;
+    }
+
+    .status-active { background: rgba(34,197,94,.2); color: #22c55e; }
+    .status-trial { background: rgba(204,255,0,.2); color: var(--primary); }
+    .status-free { background: rgba(139,139,139,.2); color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="logo-icon"><i data-lucide="sparkles"></i></div>
+        <div class="logo-text">
+          <h2>ContentSpark</h2>
+          <span>Admin Panel</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-link active"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+        <a href="../index.html" class="nav-link"><i data-lucide="layout-dashboard"></i><span>User View</span></a>
+        <a href="./analytics.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Analytics</span></a>
+        <a href="./settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="search-box">
+          <i data-lucide="search"></i>
+          <input type="text" placeholder="Search users..." id="admin-search" />
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-btn" id="theme-toggle-btn" type="button" aria-label="Toggle theme">
+            <i data-lucide="moon"></i>
+          </button>
+          <div class="profile">
+            <div class="avatar">A</div>
+            <div class="profile-info">
+              <strong>Admin</strong>
+              <span>Administrator</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="hero" style="margin-bottom:2rem;">
+        <div class="hero-content">
+          <span class="hero-badge"><i data-lucide="crown"></i>&nbsp;Admin Dashboard</span>
+          <h1>Platform Management</h1>
+          <p>Monitor users, analytics, and platform performance.</p>
+        </div>
+      </section>
+
+      <section class="admin-stats">
+        <div class="stat-card">
+          <div class="stat-icon"><i data-lucide="users"></i></div>
+          <div><h3 id="total-users">0</h3><p>Total Users</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i data-lucide="crown"></i></div>
+          <div><h3 id="total-pro">0</h3><p>Pro Users</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i data-lucide="zap"></i></div>
+          <div><h3 id="total-generations">0</h3><p>Generations Today</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i data-lucide="dollar-sign"></i></div>
+          <div><h3 id="total-revenue">$0</h3><p>Monthly Revenue</p></div>
+        </div>
+      </section>
+
+      <section class="glass-card">
+        <div class="card-header">
+          <h2>Recent Users</h2>
+          <button class="hero-btn" id="export-users" type="button">Export CSV</button>
+        </div>
+        <table class="admin-table" id="users-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Email</th>
+              <th>Joined</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="../JS/data.js"></script>
+  <script src="../JS/ui.js"></script>
+  <script src="../JS/app.js"></script>
+  <script>
+    const usersTable = document.querySelector('#users-table tbody');
+    const totalUsersEl = document.getElementById('total-users');
+    const totalProEl = document.getElementById('total-pro');
+    const totalGenEl = document.getElementById('total-generations');
+    const totalRevenueEl = document.getElementById('total-revenue');
+
+    // Seed mock users if none exist
+    function seedMockUsers() {
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      if (Object.keys(users).length === 0) {
+        users['john@example.com'] = {
+          name: 'John Doe',
+          password: 'password123',
+          createdAt: new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString(),
+          isPro: true
+        };
+        users['alice@example.com'] = {
+          name: 'Alice Smith',
+          password: 'password123',
+          createdAt: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(),
+          isPro: false
+        };
+        users['admin@contentspark.ai'] = {
+          name: 'Administrator',
+          password: 'admin',
+          createdAt: new Date(Date.now() - 10 * 24 * 3600 * 1000).toISOString(),
+          isPro: true
+        };
+        localStorage.setItem('users', JSON.stringify(users));
+      }
+    }
+
+    function getAdminData() {
+      seedMockUsers();
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      const history = JSON.parse(localStorage.getItem('cs_history') || '[]');
+
+      const userData = Object.entries(users).map(([email, data]) => ({
+        email,
+        name: data.name,
+        joined: data.createdAt || new Date().toISOString(),
+        isPro: data.isPro || false
+      }));
+
+      return { userData, history };
+    }
+
+    function renderAdminDashboard(filterText = '') {
+      const { userData, history } = getAdminData();
+      
+      let filteredUsers = userData;
+      if (filterText.trim()) {
+        const query = filterText.toLowerCase();
+        filteredUsers = userData.filter(u => 
+          u.name.toLowerCase().includes(query) || 
+          u.email.toLowerCase().includes(query)
+        );
+      }
+
+      totalUsersEl.textContent = String(userData.length);
+      totalProEl.textContent = String(userData.filter(u => u.isPro).length);
+      totalGenEl.textContent = String(history.length);
+      totalRevenueEl.textContent = '$' + String(userData.filter(u => u.isPro).length * 29);
+
+      if (filteredUsers.length === 0) {
+        usersTable.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align:center; color:var(--text-muted); padding:2rem;">
+              No users found matching your search.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      usersTable.innerHTML = filteredUsers.map(user => `
+        <tr>
+          <td><strong>${escapeHtml(user.name)}</strong></td>
+          <td>${escapeHtml(user.email)}</td>
+          <td>${new Date(user.joined).toLocaleDateString()}</td>
+          <td><span class="status-badge ${user.isPro ? 'status-active' : 'status-free'}">${user.isPro ? 'Pro' : 'Free'}</span></td>
+          <td>
+            <button class="icon-btn impersonate-btn" style="width:36px;height:36px;" data-email="${user.email}" title="Impersonate User">
+              <i data-lucide="external-link"></i>
+            </button>
+            <button class="icon-btn delete-btn" style="width:36px;height:36px; margin-left: 0.5rem; color:#ef4444;" data-email="${user.email}" title="Delete User">
+              <i data-lucide="trash-2"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+      lucide.createIcons();
+
+      // Hook up Impersonate action
+      usersTable.querySelectorAll('.impersonate-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const email = btn.getAttribute('data-email');
+          const users = JSON.parse(localStorage.getItem('users') || '{}');
+          const target = users[email];
+          if (target) {
+            localStorage.setItem('authenticated', JSON.stringify({ email, name: target.name }));
+            showToast('Impersonation', `Logged in as ${target.name}. Redirecting...`);
+            setTimeout(() => {
+              window.location.href = '../index.html';
+            }, 1000);
+          }
+        });
+      });
+
+      // Hook up Delete action
+      usersTable.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const email = btn.getAttribute('data-email');
+          if (email === 'admin@contentspark.ai') {
+            showToast('Error', 'Cannot delete the super administrator account.');
+            return;
+          }
+          if (confirm(`Are you sure you want to delete user ${email}?`)) {
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            delete users[email];
+            localStorage.setItem('users', JSON.stringify(users));
+            showToast('Deleted', `User ${email} has been removed.`);
+            renderAdminDashboard(document.getElementById('admin-search')?.value || '');
+          }
+        });
+      });
+    }
+
+    // Export CSV
+    document.getElementById('export-users')?.addEventListener('click', () => {
+      const { userData } = getAdminData();
+      if (userData.length === 0) {
+        showToast('Info', 'No users to export');
+        return;
+      }
+
+      let csv = 'Name,Email,Joined Date,Plan\n';
+      userData.forEach(u => {
+        csv += `"${u.name.replace(/"/g, '""')}","${u.email}","${new Date(u.joined).toLocaleDateString()}","${u.isPro ? 'Pro' : 'Free'}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'contentspark-users.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Exported', 'User directory downloaded as CSV');
+    });
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    // Search filter input
+    document.getElementById('admin-search')?.addEventListener('input', (e) => {
+      renderAdminDashboard(e.target.value);
+    });
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAdminDashboard();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Templates | ContentSpark AI</title>
+  <script>
+    if (!localStorage.getItem('authenticated')) {
+      window.location.href = './auth.html';
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="../CSS/style.css" />
+  <link rel="stylesheet" href="../CSS/saas-ui.css" />
+  <style>
+    .templates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+.template-card {
+  background: rgba(255,255,255,0.02);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 1.8rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="light"] .template-card {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.template-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.4s;
+}
+
+.template-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-glow);
+  border-color: rgba(204,255,0,0.2);
+}
+
+[data-theme="light"] .template-card:hover {
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.template-card.favorited {
+  border-color: var(--primary);
+}
+
+[data-theme="light"] .template-card.favorited {
+  border-color: var(--primary);
+}
+
+    .template-card.favorited .template-heart {
+      color: var(--primary);
+    }
+
+    .template-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .template-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .template-heart {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      color: var(--text-muted);
+      width: 40px;
+      height: 40px;
+    }
+
+    .template-heart:hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+
+    .template-heart.favorited {
+      color: var(--primary);
+      background: rgba(204,255,0,0.15);
+    }
+
+    .template-category {
+      display: inline-block;
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      background: rgba(204,255,0,0.15);
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+
+    .template-preview {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .template-action {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .template-btn {
+      flex: 1;
+      padding: 0.7rem 1rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+    }
+
+    .template-btn:hover {
+      background: rgba(204,255,0,0.15);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .template-btn.primary {
+      background: var(--primary);
+      color: #000;
+    }
+
+    .template-btn.primary:hover {
+      background: #b5e600;
+    }
+
+    .guide-card {
+      background: linear-gradient(135deg, rgba(204,255,0,0.05), rgba(255,255,255,0.02));
+      border: 1px solid rgba(204,255,0,0.15);
+    }
+
+    .guide-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: rgba(255,255,255,0.02);
+      border-radius: 16px;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .guide-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .guide-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 12px;
+      background: rgba(204,255,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .guide-text {
+      color: var(--text);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: rgba(255,255,255,0.02);
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.08);
+      grid-column: 1 / -1;
+    }
+
+    .empty-state i {
+      width: 60px;
+      height: 60px;
+      color: var(--primary);
+      margin-bottom: 1.5rem;
+      opacity: 0.5;
+    }
+
+    .empty-state h3 {
+      margin-bottom: 0.5rem;
+    }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.template-card {
+  animation: fadeInUp 0.4s ease;
+}
+
+@media (max-width: 768px) {
+  .templates-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .template-card {
+    padding: 1.2rem;
+  }
+
+  .template-btn {
+    padding: 0.6rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .templates-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .template-card {
+    padding: 1rem;
+    border-radius: 20px;
+  }
+
+  .guide-card {
+    padding: 1rem;
+  }
+
+  .guide-item {
+    padding: 0.8rem;
+    gap: 0.8rem;
+  }
+}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="logo-icon"><i data-lucide="sparkles"></i></div>
+        <div class="logo-text">
+          <h2>ContentSpark</h2>
+          <span>AI Workspace</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+        <a href="./generator.html" class="nav-link"><i data-lucide="wand-sparkles"></i><span>Generator</span></a>
+        <a href="#" class="nav-link active"><i data-lucide="files"></i><span>Templates</span></a>
+        <a href="./favorites.html" class="nav-link"><i data-lucide="heart"></i><span>Favorites</span></a>
+        <a href="./history.html" class="nav-link"><i data-lucide="history"></i><span>History</span></a>
+        <a href="./analytics.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Analytics</span></a>
+        <a href="./pricing.html" class="nav-link"><i data-lucide="credit-card"></i><span>Pricing</span></a>
+        <a href="./settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a>
+        <a href="#" class="nav-link" id="logout-btn"><i data-lucide="log-out"></i><span>Logout</span></a>
+      </nav>
+
+      <div class="premium-card upgrade-card">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;">
+          <i data-lucide="crown" style="color:var(--primary);"></i>
+          <h3 style="margin:0;">Pro Workspace</h3>
+        </div>
+        <ul style="list-style:none;padding:0;margin:0 0 1rem 0;color:var(--text-muted);font-size:.85rem;line-height:2;">
+          <li style="display:flex;align-items:center;gap:.3rem;"><i data-lucide="check" style="width:14px;height:14px;color:var(--primary);"></i> Unlimited AI generations</li>
+          <li style="display:flex;align-items:center;gap:.3rem;"><i data-lucide="check" style="width:14px;height:14px;color:var(--primary);"></i> Advanced analytics</li>
+          <li style="display:flex;align-items:center;gap:.3rem;"><i data-lucide="check" style="width:14px;height:14px;color:var(--primary);"></i> Premium templates</li>
+          <li style="display:flex;align-items:center;gap:.3rem;"><i data-lucide="check" style="width:14px;height:14px;color:var(--primary);"></i> Priority support</li>
+        </ul>
+        <button id="upgrade-btn" type="button" class="hero-btn">Upgrade Now</button>
+      </div>
+
+      <div id="pro-modal-backdrop" class="modal-backdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pro-modal-title">
+          <div class="modal-header">
+            <h3 id="pro-modal-title">Go Pro</h3>
+            <button id="pro-modal-close" class="modal-close" type="button" aria-label="Close">&times;</button>
+          </div>
+          <p>Select a plan to unlock the Pro Workspace (demo).</p>
+          <div class="modal-actions">
+            <button class="pro-select" data-plan="monthly" type="button">Monthly Pro</button>
+            <button class="pro-select" data-plan="yearly" type="button">Yearly Pro</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <button class="upgrade-card-mobile" id="mobile-upgrade-btn">
+      <i data-lucide="crown"></i> Pro
+    </button>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="search-box">
+          <i data-lucide="search"></i>
+          <input type="text" placeholder="Search templates..." id="template-search" />
+        </div>
+
+<div class="topbar-actions">
+           <button class="icon-btn" id="notification-btn" type="button" aria-label="Notifications">
+             <i data-lucide="bell"></i>
+             <span class="notification-badge" id="notification-count" style="display:none;">0</span>
+           </button>
+
+           <div class="notification-popup" id="notification-popup">
+             <div class="notification-item">No notifications yet</div>
+           </div>
+
+           <button class="icon-btn" id="theme-toggle-btn" type="button" aria-label="Toggle theme">
+             <i data-lucide="moon"></i>
+           </button>
+           <div class="profile profile-clickable" id="profile-trigger">
+             <div class="avatar">S</div>
+             <div class="profile-info">
+               <strong>Saad</strong>
+               <span>Creator</span>
+             </div>
+           </div>
+
+           <div class="profile-popup" id="profile-popup">
+             <div class="profile-popup-header">
+               <div class="profile-popup-avatar">S</div>
+               <div>
+                 <div style="font-weight:600;">Saad</div>
+                 <div style="color:var(--text-muted);font-size:.85rem;">Creator Plan</div>
+               </div>
+             </div>
+             <div>
+               <div class="profile-stat">
+                 <span class="profile-stat-label">Templates</span>
+                 <span class="profile-stat-value" id="profile-stat-templates">0</span>
+               </div>
+               <div class="profile-stat">
+                 <span class="profile-stat-label">Favorites</span>
+                 <span class="profile-stat-value" id="profile-stat-favs">0</span>
+               </div>
+             </div>
+             <button id="view-profile-btn" class="hero-btn" style="width:100%;padding:.8rem;">
+               View Full Profile
+             </button>
+           </div>
+         </div>
+       </header>
+
+      <section class="hero" style="margin-bottom:2rem;">
+        <div class="hero-content">
+          <span class="hero-badge"><i data-lucide="files"></i>&nbsp;Templates Library</span>
+          <h1>Premium Templates</h1>
+          <p>Select a template below to instantly generate content.</p>
+        </div>
+      </section>
+
+      <div class="templates-grid" id="templates-grid"></div>
+
+      <div class="glass-card guide-card">
+        <div class="card-header">
+          <h2>How to use templates</h2>
+        </div>
+        <div class="guide-item">
+          <div class="guide-num">1</div>
+          <div class="guide-text">Browse and select a template below.</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-num">2</div>
+          <div class="guide-text">Click "Use Template" to prefill the generator.</div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-num">3</div>
+          <div class="guide-text">Generate ideas instantly and save favorites.</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="../JS/data.js"></script>
+  <script src="../JS/ui.js"></script>
+  <script src="../JS/dashboard.js"></script>
+  <script src="../JS/app.js"></script>
+  <script>
+    const csData = window.__csData;
+    const dashboard = window.__dashboard;
+
+    // Load user and stats
+    const auth = JSON.parse(localStorage.getItem('authenticated') || '{}');
+    document.querySelector('.profile-info strong').textContent = auth.name || 'User';
+    document.querySelector('.profile-popup-header div div').textContent = auth.name || 'User';
+    document.querySelector('.profile-popup-avatar').textContent = (auth.name || 'U')[0];
+    document.querySelector('.avatar').textContent = (auth.name || 'U')[0];
+
+    function updateStats() {
+      const templates = csData?.getTemplates() || [];
+      const favs = csData?.getFavorites() || [];
+
+      document.getElementById('profile-stat-templates').textContent = templates.length;
+      document.getElementById('profile-stat-favs').textContent = favs.length;
+
+      const isPro = dashboard?.isPro() || false;
+      const credits = dashboard?.getUserCredits() ?? 50;
+      const creditsText = isPro ? 'Unlimited' : credits;
+      
+      const creditsEl = document.getElementById('user-credits');
+      if (creditsEl) creditsEl.textContent = creditsText;
+    }
+
+    // Render templates
+    function renderTemplates(filterText = '') {
+      const grid = document.getElementById('templates-grid');
+      if (!grid) return;
+
+      let templates = csData?.getTemplates() || [];
+      const favs = csData?.getFavorites() || [];
+
+      // Add extra premium templates if they don't exist in data
+      if (templates.length <= 3) {
+        const extraSeeds = [
+          {
+            id: "tpl-4",
+            title: "Cold Email Outreach",
+            category: "Marketing",
+            content: "Highly personalized opening hook, brief case study metric, clear low-friction call-to-action."
+          },
+          {
+            id: "tpl-5",
+            title: "Instagram Caption & Hook",
+            category: "Social",
+            content: "Punchy bold header, engaging backstory, bulleted tips, interaction question prompt."
+          },
+          {
+            id: "tpl-6",
+            title: "Google Ad Copy Variant",
+            category: "Marketing",
+            content: "Keyword-rich Headline 1 | Benefit Headline 2 | Dynamic CTA Headline 3. Plus Description."
+          }
+        ];
+        
+        // Save back to local storage
+        const currentSaved = JSON.parse(localStorage.getItem(csData.STORAGE_KEYS.templates) || '[]');
+        const merged = [...currentSaved];
+        extraSeeds.forEach(s => {
+          if (!merged.some(m => m.id === s.id)) {
+            merged.push(s);
+          }
+        });
+        localStorage.setItem(csData.STORAGE_KEYS.templates, JSON.stringify(merged));
+        templates = merged;
+      }
+
+      // Filter templates
+      if (filterText.trim()) {
+        const query = filterText.toLowerCase();
+        templates = templates.filter(t => 
+          t.title.toLowerCase().includes(query) ||
+          t.category.toLowerCase().includes(query) ||
+          t.content.toLowerCase().includes(query)
+        );
+      }
+
+      if (templates.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <i data-lucide="search" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 1rem; opacity: 0.5;"></i>
+            <h3>No templates match your search</h3>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">Try a different keyword or browse all templates.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      grid.innerHTML = templates.map(t => {
+        const isFav = favs.includes(t.id);
+        return `
+          <div class="template-card ${isFav ? 'favorited' : ''}">
+            <div class="template-header">
+              <span class="template-category">${escapeHtml(t.category)}</span>
+              <button class="template-heart ${isFav ? 'favorited' : ''}" data-id="${t.id}" aria-label="Favorite template">
+                <i data-lucide="heart" style="${isFav ? 'fill:var(--primary); color:var(--primary);' : ''}"></i>
+              </button>
+            </div>
+            <h3 class="template-title">${escapeHtml(t.title)}</h3>
+            <p class="template-preview">${escapeHtml(t.content)}</p>
+            <div class="template-action">
+              <button class="template-btn primary" onclick="useTemplate('${escapeJs(t.title)}')">
+                <i data-lucide="wand-sparkles" style="width:14px;height:14px;"></i> Use Template
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+
+      // Hook up favorites toggle
+      grid.querySelectorAll('.template-heart').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute('data-id');
+          const isFavoritedNow = csData?.toggleFavorite(id);
+          btn.classList.toggle('favorited', isFavoritedNow);
+          btn.closest('.template-card').classList.toggle('favorited', isFavoritedNow);
+          
+          const icon = btn.querySelector('i');
+          if (icon) {
+            if (isFavoritedNow) {
+              icon.style.fill = 'var(--primary)';
+              icon.style.color = 'var(--primary)';
+              showToast('Saved to Favorites', 'Template added to favorites');
+            } else {
+              icon.style.fill = 'none';
+              icon.style.color = '';
+              showToast('Removed from Favorites', 'Template removed from favorites');
+            }
+          }
+          updateStats();
+        });
+      });
+    }
+
+    // Direct routing to Generator page
+    window.useTemplate = function(title) {
+      window.location.href = `./generator.html?topic=${encodeURIComponent(title)}`;
+    };
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function escapeJs(s) {
+      return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
+    }
+
+    // Search input handler
+    document.getElementById('template-search')?.addEventListener('input', (e) => {
+      renderTemplates(e.target.value);
+    });
+
+    // Profile Trigger popup
+    document.getElementById('profile-trigger')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('profile-popup').classList.toggle('show');
+    });
+
+    document.getElementById('view-profile-btn')?.addEventListener('click', () => {
+      window.location.href = './settings.html';
+    });
+
+    document.addEventListener('click', (e) => {
+      const popup = document.getElementById('profile-popup');
+      const trigger = document.getElementById('profile-trigger');
+      if (popup && popup.classList.contains('show') && !trigger?.contains(e.target) && !popup.contains(e.target)) {
+        popup.classList.remove('show');
+      }
+    });
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      renderTemplates();
+      updateStats();
+    });
+  </script>
+</body>
+</html>
